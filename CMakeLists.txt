@@ -15,6 +15,8 @@ add_executable(5.2 Data-structure/5.2.cpp)
 add_executable(5.3 Data-structure/5.3.cpp)
 add_executable(6.1.1 Data-structure/6.1.1.c)
 add_executable(6.1.2 Data-structure/6.1.2.c)
+add_executable(6.1 Data-structure/6.1.cpp)
+add_executable(6.2 Data-structure/6.2.cpp)
 
 add_executable(test3 test3/test3.cpp)
 
