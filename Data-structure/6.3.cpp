@@ -38,10 +38,11 @@ void bfs(int x) {
 }
 int main() {
     cin >> n >> m;
+    //初始化图
     for (int i = 0; i < m; i++) {
         int k, l;
         cin >> k >> l;
-        map[k][l] = 1;
+        map[k][l] = 1;//无向图，记录当前节点
         map[l][k] = 1;
     }
     for (int i = 1; i <=n; i++) { /* 对于所有节点 做bfs() */
