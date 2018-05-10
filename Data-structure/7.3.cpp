@@ -1,54 +1,62 @@
-//
-// Created by 唐和辉 on 2018/5/7.
-//
-
-#include<iostream>
+/* 题意要求： 保证最短距离，若距离相等 则选取总价格最低的路径
+   1. dijkstra找最短路  一个新节点加入已找到最短路径的集合S后 更新其他所有点的权重时  需要增加一种情况  就是当距离不变时  更新价格为较小的
+   那条路的价格 。
+*/
+#include "iostream"
 using namespace std;
-const int maxn=505,infinity=10000;
-int N,M,S,D,DL[maxn],DP[maxn],path[maxn]={0},GL[maxn][maxn]={0},GP[maxn][maxn]={0};
-void Dijkstra(){
-    int v,minl,minp,final[maxn]={0};
-    for(int i=0;i<N;i++){
-        DL[i] = GL[S][i];
-        DP[i] = GP[S][i];
-        if(DL[i]<infinity) path[i] = S;
-    }
-    final[S] = 1;
-    for(int i=0;i<N;i++){
-        minl = infinity;
-        for(int j=0;j<N;j++){
-            if(!final[j] && (DL[j]<minl || (DL[j]==minl && DP[j]<minp))){
-                v = j;
-                minl = DL[j];
-                minp = DP[j];
+#define INF 501
+int dist[501];
+int map[501][501]; /* 2城市之间的距离~ */
+int cost[501][501]; /* 2城市之间的路费~ */
+int MCost[501];
+bool visited[501] = {false}; /* 判断该点是否已经求出最短路 */
+/*  dijkstra求最短路的变种~
+*/
+void dijkstra(int v0,int v,int d) {
+    dist[v0] = 0; visited[v0] = true; /* 初始状态 v节点属于集合 */
+    int i, w;
+    for (i = 1; i < v; i++) { /* 开始主循环 每次求得v到某个顶点的最短路径 并加v到集合 */
+        int MIN = INF; /* 当前所知离v0最近的节点 */
+        for (w = 0; w < v; w++) {
+            if (!visited[w] ) { /* 节点在 结合 V-S中 */
+                if (dist[w] < MIN) { /* 找到最短路径节点 */
+                    MIN = dist[w];
+                    v0 = w;
+                }
             }
         }
-        if(minl<infinity) final[v] = 1;
-        else break;
-        for(int i=0;i<N;i++){
-            if(!final[i] && ((minl+GL[v][i])<DL[i] || (((minl+GL[v][i])==DL[i]) && (minp+GP[v][i])<DP[i]))){
-                DL[i] = minl + GL[v][i];
-                DP[i] = minp + GP[v][i];
-                path[i] = v;
+        visited[v0] = true;
+        for (w = 0; w < v; w++) { /* 更新当前的最短路径 */
+            if (!visited[w] && MIN + map[v0][w] < dist[w]) {
+                dist[w] = MIN + map[v0][w];
+                MCost[w] = MCost[v0] + cost[v0][w];
+            }
+            else if (!visited[w] && MIN + map[v0][w] ==
+                    dist[w] && MCost[w] > MCost[v0] + cost[v0][w]) { /* 路径长度相等则选择价格较便宜的一条*/
+                MCost[w] = MCost[v0] + cost[v0][w];
             }
         }
     }
-    cout<<DL[D]<<' '<<DP[D]<<endl;
 }
-int main(){
-    int a,b,l,p;
-    cin>>N>>M>>S>>D;
-    for(int i=0;i<N;i++){
-        for(int j=0;j<N;j++){
-            if(i!=j) GL[i][j]=GP[i][j] = infinity;
+int main() {
+    int v, e, s, d;
+    cin >> v >> e >> s >> d;
+    for(int i=0;i<v;i++)
+        for (int j = 0; j < v; j++) {
+            map[i][j] = map[j][i] = INF;
+            cost[i][j] = cost[j][i] = INF;
         }
+    for (int i = 0; i < e; i++) {
+        int a, b, c, d;
+        cin >> a >> b >> c >> d;
+        map[a][b] = map[b][a] = c;
+        cost[a][b] = cost[b][a] = d;
     }
-    for(int i=0;i<M;i++){
-        cin>>a>>b>>l>>p;
-        GL[a][b]=GL[b][a] = l;
-        GP[a][b]=GP[b][a] = p;
+    for (int i = 0; i < v; i++) {
+        dist[i] = map[i][s];  /* 记录当到出发点的距离 */
+        MCost[i] = cost[i][s];
     }
-    Dijkstra();
-
+    dijkstra(s,v,d);
+    cout << dist[d] <<" "<<MCost[d]<< endl;
     return 0;
 }

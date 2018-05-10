@@ -24,7 +24,7 @@
 //set CROCODILE #101 to start Vertex,N+1 to finish Vertex
 #define _START_IDX 101
 #define _FINISH_IDX N+1
-#define CENTRAL_ISLAND_R 7.5
+#define CENTRAL_ISLAND_R 7.5//中心岛屿半径
 #define BORDER 50
 #define TRUE 1
 #define FALSE 0
@@ -71,7 +71,7 @@ void FindStartAndFinishNode(int N,int jumpDistance)
     int i,minFinishDist;
     //minFinishDist放一个点到岸上的最短距离
     float dist;
-    float startDist=jumpDistance+CENTRAL_ISLAND_R;
+    float startDist=jumpDistance+CENTRAL_ISLAND_R;//中心岛屿半径+跳跃距离=初始跳跃长度
     for(i=0;i<N;i++)
     {
         dist=sqrt((gNodeTab[i].x)*(gNodeTab[i].x)+(gNodeTab[i].y)*(gNodeTab[i].y));
@@ -82,7 +82,7 @@ void FindStartAndFinishNode(int N,int jumpDistance)
             dist=dist-CENTRAL_ISLAND_R;
             gFirstJump[i]=dist;
             dist=1;//切换算距离还是算步数，算距离的话把这行注释掉
-            gMatrix[i][_START_IDX]=dist;
+            gMatrix[i][_START_IDX]=dist;//特殊计数（起点）
             gMatrix[_START_IDX][i]=dist;
         }
 
@@ -90,11 +90,11 @@ void FindStartAndFinishNode(int N,int jumpDistance)
         minFinishDist=Min(abs(gNodeTab[i].x+BORDER),minFinishDist);
         minFinishDist=Min(abs(gNodeTab[i].y-BORDER),minFinishDist);
         minFinishDist=Min(abs(gNodeTab[i].x+BORDER),minFinishDist);
-        if(minFinishDist<=jumpDistance)
+        if(minFinishDist<=jumpDistance) //能否跳到岸上
         {
             gNodeTab[i].finish=TRUE;
             minFinishDist=1;//切换算距离还是算步数，算距离的话把这行注释掉
-            gMatrix[i][_FINISH_IDX-1]=minFinishDist;
+            gMatrix[i][_FINISH_IDX-1]=minFinishDist;//特殊计数（终点）
             gMatrix[_FINISH_IDX-1][i]=minFinishDist;
         }
 
@@ -112,11 +112,11 @@ void BuildMatrix(int N,int jumpDistance)
                         (gNodeTab[i].x-gNodeTab[j].x)+
                         (gNodeTab[i].y-gNodeTab[j].y)*
                         (gNodeTab[i].y-gNodeTab[j].y));
-            if(dist<=jumpDistance)
+            if(dist<=jumpDistance)//跳跃距离内的计入矩阵
             {
                 dist=1;//切换算距离还是算步数，算距离的话把这行注释掉
-                gMatrix[i][j]=dist;
-                gMatrix[j][i]=dist;
+                gMatrix[i][j]=dist;//gNodeTab 中第 i 个节点到第 j 个节点的距离（在跳跃距离内）
+                gMatrix[j][i]=dist;//无向图
             }
         }
 }
@@ -140,27 +140,39 @@ int FindNextIDX(int N)//找出没有被收进集合的点中，dist最小的
     return minIDX;
 }
 
-void Dijkstra(int N)
+void Dijkstra(int N)//传 N 服务 FINISH_IDX
 {
     int i,nextIDX;
-    gPathDist[_START_IDX]=0;
+    gPathDist[_START_IDX]=0;//从第一个点开始
     nextIDX=_START_IDX;
-    while(nextIDX!=-1)
+    while(nextIDX!=-1)//节点集合不为空
     {
         gCollected[nextIDX]=1;
         for(i=0;i<_FINISH_IDX;i++)
         {
-            if(gPathDist[i]>gPathDist[nextIDX]+gMatrix[nextIDX][i] ||
-               ((int)gPathDist[i]==(int)(gPathDist[nextIDX]+gMatrix[nextIDX][i]) && gFirstJump[i]>gFirstJump[nextIDX] && (int)gPathDist[i]!= INF))
+            //
+            if(gPathDist[i]>gPathDist[nextIDX]+gMatrix[nextIDX][i]
+               //nextIDX 距离 + nextIDX 到下一节点距离 < 原先记录的下一节点距离
+               ||
+               ((int)gPathDist[i]==(int)(gPathDist[nextIDX]+gMatrix[nextIDX][i])
+                //距离相同时
+                &&
+                gFirstJump[i]>gFirstJump[nextIDX]
+                //选用第一跳最短的
+                &&
+                (int)gPathDist[i]!= INF)
+                //且跳跃不为空的
+                )
             {
-                gPathDist[i]=gPathDist[nextIDX]+gMatrix[nextIDX][i];
-                gPathFrom[i]=nextIDX;
-                if(nextIDX!=_START_IDX)
+                gPathDist[i]=gPathDist[nextIDX]+gMatrix[nextIDX][i];//赋值
+                gPathFrom[i]=nextIDX;//记录这一跳
+                if(nextIDX!=_START_IDX)//非第一跳
                     gFirstJump[i]=gFirstJump[nextIDX];
             }
         }
         nextIDX=FindNextIDX(N);
     }
+    //构建出所有的可能性
 }
 
 void DBG_ShowStatus(int N) //调试用函数
@@ -204,13 +216,13 @@ void Output(int N,int D)
         return;
     }
     printf("%d\n",(int)gPathDist[_FINISH_IDX-1]);
-    PrintPath(gPathFrom[_FINISH_IDX-1]);
+    PrintPath(gPathFrom[_FINISH_IDX-1]);//选取其中从终点开始的那一条
 }
 
 int main()
 {
     int i,N,D;
-    scanf("%d %d",&N,&D);
+    scanf("%d %d",&N,&D);//D->最大跳跃长度，N->节点数
     InitMatrix();
     InitTables();
     for(i=0;i<N;i++)
